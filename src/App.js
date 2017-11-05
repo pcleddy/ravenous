@@ -19,11 +19,16 @@ let m_business = {
 const m_businesses = [ m_business, m_business, m_business, m_business, m_business, m_business ];
 
 class App extends Component {
+
+  searchYelp(term, location, sortBy) {
+    console.log(`Searching Yelp by ${term}, ${location}, ${sortBy}`)
+  }
+
   render() {
     return (
       <div className="App">
         <h1>ravenous</h1>
-        <SearchBar />
+        <SearchBar searchYelp={this.searchYelp} />
         <BusinessList a_businesses={m_businesses} />
         <h1>END</h1>
       </div>
