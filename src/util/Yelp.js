@@ -1,43 +1,46 @@
 const clientId = 'WZyPW32NqyJNocfn2y1KjA';
 const secret = 'UQDA4nJqnKT0Qbw7dpGulvEwQ1WiizT2JP9K9JBK3FcZZ1bmokfjxT7GVxy5u01E';
-const accessToken = '';
+
+let accessToken = '';
 
 let Yelp = {
-  getAccessToken: function() {
-    if ( accessToken ) {
-      console.log(accessToken);
-      return new Promise(
-        resolve => {
-          resolve(accessToken);
-        }
-      );
-    }
-    let m_url = `https://cors-anywhere.herokuapp.com/https://api.yelp.com/oauth2/token?grant_type=client_credentials&client_id=${clientId}&client_secret=${secret}`;
-    console.log(m_url);
-    //return fetch( m_url, {method: 'POST'} ).then( response => response.json() ).then(jsonResponse => { return jsonResponse.accessToken });
-    let m_promise = fetch( m_url, {method: 'POST'} ).then( response => response.json() ).then(jsonResponse => { return jsonResponse.accessToken });
-    console.log(accessToken);
-    return m_promise;
+
+  getAccessToken() {
+    if (accessToken) { return new Promise(resolve => resolve(accessToken)); }
+    return fetch(
+      `https://cors-anywhere.herokuapp.com/https://api.yelp.com/oauth2/token?grant_type=client_credentials&client_id=${clientId}&client_secret=${secret}`,
+      {method: 'POST'}
+    ).then(
+      response => { return response.json() }
+    ).then(
+      jsonResponse => accessToken = jsonResponse.access_token
+    )
   },
-  search: function(term, location, sortBy) {
+
+  search(term, location, sortBy) {
     return Yelp.getAccessToken().then(
       () => {
-        console.log(accessToken);
-        fetch(
+        return fetch(
           `https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search?term=${term}&location=${location}&sort_by=${sortBy}`,
-          {
-            headers: {Authorization: `Bearer ${accessToken}`}
-          }
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        ).then(
+          response => { return response.json() }
         ).then(
           jsonResponse => {
-            console.log(jsonResponse);
-            if (jsonResponse.businesses) {
-              jsonResponse.businesses.map(
+            if ( jsonResponse.businesses ) {
+              return jsonResponse.businesses.map(
                 business => {
                   return {
-                  id: business.id,
-                  imageSrc: business.imageSrc,
-                  // name address city state zipCode category rating reviewCount
+                    id: business.id,
+                    imageSrc: business.image_url,
+                    name: business.name,
+                    address: business.location.address1,
+                    city: business.location.city,
+                    state: business.location.state,
+                    zipCode: business.location.zip_code,
+                    category: business.categories[0].title,
+                    rating: business.rating,
+                    reviewCount: business.review_count,
                   }
                 }
               )
@@ -47,7 +50,7 @@ let Yelp = {
       }
     )
   }
-}
 
-//module.exports = Yelp;
-export default Yelp;
+};
+
+module.exports = Yelp;
